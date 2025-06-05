@@ -12,8 +12,6 @@ node_positions = {}
 node_items = {}  # Maps city to (oval_id, text_id)
 edge_items = {}  # Maps (city1, city2) to line_id
 NODE_RADIUS = 20
-CANVAS_WIDTH = 600
-CANVAS_HEIGHT = 400
 
 # Dynamic input frame
 input_frame = None
@@ -48,7 +46,9 @@ def add_city():
             update_status(f"Error: City '{city}' already exists.")
             return
         g.add_city(city)
-        node_positions[city] = (random.randint(50, CANVAS_WIDTH-50), random.randint(50, CANVAS_HEIGHT-50))
+        canvas_width = canvas.winfo_width() or 600  # Fallback if not yet rendered
+        canvas_height = canvas.winfo_height() or 400
+        node_positions[city] = (random.randint(50, canvas_width-50), random.randint(50, canvas_height-50))
         update_status(f"Added city: {city}")
         update_canvas()
         clear_input_frame()
@@ -246,8 +246,8 @@ def on_node_press(event):
 
 def on_node_drag(event):
     if dragging_node:
-        x = max(NODE_RADIUS, min(CANVAS_WIDTH - NODE_RADIUS, event.x))
-        y = max(NODE_RADIUS, min(CANVAS_HEIGHT - NODE_RADIUS, event.y))
+        x = max(NODE_RADIUS, min(canvas.winfo_width() - NODE_RADIUS, event.x))
+        y = max(NODE_RADIUS, min(canvas.winfo_height() - NODE_RADIUS, event.y))
         node_positions[dragging_node] = (x, y)
         update_canvas()
         if dragging_node in node_items:
@@ -312,11 +312,11 @@ main_frame.pack(fill="both", expand=True)
 
 # Sidebar for controls
 sidebar = tk.Frame(main_frame, width=200, bg="#f0f0f0")
-sidebar.grid(row=0, column=0, sticky="ns", padx=5, pady=5)
+sidebar.grid(row=0, column=0, sticky="ns", padx=10, pady=5)
 
 # Canvas for graph visualization
-canvas = tk.Canvas(main_frame, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white", relief="sunken", borderwidth=2)
-canvas.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+canvas = tk.Canvas(main_frame, bg="#ffffff", relief="solid", bd=2)
+canvas.grid(row=0, column=1, sticky="nsew", padx=10, pady=5)
 
 # Bind mouse events for dragging and selection
 canvas.bind("<Button-1>", on_node_press)  # Left-click to select/start drag
