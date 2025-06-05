@@ -21,6 +21,21 @@ dragging_node = None
 selected_node = None
 selected_edge = None
 
+# Color scheme
+BG_COLOR = "#121E31"  # Dark blue background
+SIDEBAR_COLOR = "#0C1423"  # Darker blue sidebar
+NODE_COLOR = "#4CAF50"  # Green nodes
+NODE_HIGHLIGHT = "#FFC107"  # Amber for selected nodes
+EDGE_COLOR = "#607D8B"  # Blue-gray edges
+EDGE_HIGHLIGHT = "#FF5252"  # Red for selected edges
+TEXT_COLOR = "#FFFFFF"  # White text
+STATUS_BAR_COLOR = "#0C1423"  # Darker blue status bar
+BUTTON_COLOR = "#1E88E5"  # Blue buttons
+BUTTON_HOVER = "#1565C0"  # Darker blue on hover
+INPUT_BG = "#1E2A3A"  # Dark blue input fields
+DISTANCE_COLOR = "#81D4FA"  # Light blue for distance text
+PATH_COLOR = "#FF9800"  # Orange for path highlighting
+
 def clear_input_frame():
     global input_frame
     if input_frame:
@@ -30,11 +45,11 @@ def clear_input_frame():
 def add_city():
     clear_input_frame()
     global input_frame
-    input_frame = tk.Frame(sidebar, bg="#f0f0f0")
-    input_frame.pack(fill="x", padx=5, pady=5)
+    input_frame = tk.Frame(sidebar, bg=SIDEBAR_COLOR)
+    input_frame.pack(fill="x", padx=10, pady=5)
     
-    tk.Label(input_frame, text="City name:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    city_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="City name:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    city_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     city_entry.pack(fill="x", padx=5, pady=2)
     
     def submit():
@@ -46,30 +61,37 @@ def add_city():
             update_status(f"Error: City '{city}' already exists.")
             return
         g.add_city(city)
-        canvas_width = canvas.winfo_width() or 600  # Fallback if not yet rendered
+        canvas_width = canvas.winfo_width() or 600
         canvas_height = canvas.winfo_height() or 400
         node_positions[city] = (random.randint(50, canvas_width-50), random.randint(50, canvas_height-50))
         update_status(f"Added city: {city}")
         update_canvas()
         clear_input_frame()
     
-    tk.Button(input_frame, text="Submit", command=submit, **submit_button_style).pack(side="left", padx=5, pady=2)
-    tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style).pack(side="left", padx=5, pady=2)
+    submit_btn = tk.Button(input_frame, text="Submit", command=submit, **submit_button_style)
+    submit_btn.pack(side="left", padx=5, pady=5)
+    cancel_btn = tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style)
+    cancel_btn.pack(side="left", padx=5, pady=5)
+    
+    # Hover effects
+    for btn in [submit_btn, cancel_btn]:
+        btn.bind("<Enter>", lambda e, b=btn: b.config(bg=BUTTON_HOVER))
+        btn.bind("<Leave>", lambda e, b=btn: b.config(bg=BUTTON_COLOR))
 
 def add_road():
     clear_input_frame()
     global input_frame
-    input_frame = tk.Frame(sidebar, bg="#f0f0f0")
-    input_frame.pack(fill="x", padx=5, pady=5)
+    input_frame = tk.Frame(sidebar, bg=SIDEBAR_COLOR)
+    input_frame.pack(fill="x", padx=10, pady=5)
     
-    tk.Label(input_frame, text="From city:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    road_from_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="From city:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    road_from_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     road_from_entry.pack(fill="x", padx=5, pady=2)
-    tk.Label(input_frame, text="To city:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    road_to_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="To city:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    road_to_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     road_to_entry.pack(fill="x", padx=5, pady=2)
-    tk.Label(input_frame, text="Distance:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    road_distance_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="Distance:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    road_distance_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     road_distance_entry.pack(fill="x", padx=5, pady=2)
     
     def submit():
@@ -101,20 +123,26 @@ def add_road():
         update_canvas()
         clear_input_frame()
     
-    tk.Button(input_frame, text="Submit", command=submit, **submit_button_style).pack(side="left", padx=5, pady=2)
-    tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style).pack(side="left", padx=5, pady=2)
+    submit_btn = tk.Button(input_frame, text="Submit", command=submit, **submit_button_style)
+    submit_btn.pack(side="left", padx=5, pady=5)
+    cancel_btn = tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style)
+    cancel_btn.pack(side="left", padx=5, pady=5)
+    
+    for btn in [submit_btn, cancel_btn]:
+        btn.bind("<Enter>", lambda e, b=btn: b.config(bg=BUTTON_HOVER))
+        btn.bind("<Leave>", lambda e, b=btn: b.config(bg=BUTTON_COLOR))
 
 def find_bfs():
     clear_input_frame()
     global input_frame
-    input_frame = tk.Frame(sidebar, bg="#f0f0f0")
-    input_frame.pack(fill="x", padx=5, pady=5)
+    input_frame = tk.Frame(sidebar, bg=SIDEBAR_COLOR)
+    input_frame.pack(fill="x", padx=10, pady=5)
     
-    tk.Label(input_frame, text="Start city:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    start_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="Start city:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    start_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     start_entry.pack(fill="x", padx=5, pady=2)
-    tk.Label(input_frame, text="End city:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    end_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="End city:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    end_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     end_entry.pack(fill="x", padx=5, pady=2)
     
     def submit():
@@ -134,20 +162,26 @@ def find_bfs():
         highlight_path(result)
         clear_input_frame()
     
-    tk.Button(input_frame, text="Submit", command=submit, **submit_button_style).pack(side="left", padx=5, pady=2)
-    tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style).pack(side="left", padx=5, pady=2)
+    submit_btn = tk.Button(input_frame, text="Submit", command=submit, **submit_button_style)
+    submit_btn.pack(side="left", padx=5, pady=5)
+    cancel_btn = tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style)
+    cancel_btn.pack(side="left", padx=5, pady=5)
+    
+    for btn in [submit_btn, cancel_btn]:
+        btn.bind("<Enter>", lambda e, b=btn: b.config(bg=BUTTON_HOVER))
+        btn.bind("<Leave>", lambda e, b=btn: b.config(bg=BUTTON_COLOR))
 
 def find_dijkstra():
     clear_input_frame()
     global input_frame
-    input_frame = tk.Frame(sidebar, bg="#f0f0f0")
-    input_frame.pack(fill="x", padx=5, pady=5)
+    input_frame = tk.Frame(sidebar, bg=SIDEBAR_COLOR)
+    input_frame.pack(fill="x", padx=10, pady=5)
     
-    tk.Label(input_frame, text="Start city:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    start_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="Start city:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    start_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     start_entry.pack(fill="x", padx=5, pady=2)
-    tk.Label(input_frame, text="End city:", bg="#f0f0f0", font=("Arial", 10)).pack(anchor="w", padx=5)
-    end_entry = tk.Entry(input_frame, font=("Arial", 10))
+    tk.Label(input_frame, text="End city:", bg=SIDEBAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 12)).pack(anchor="w", padx=5)
+    end_entry = tk.Entry(input_frame, font=("Helvetica", 11), bg=INPUT_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR, bd=0, relief="flat")
     end_entry.pack(fill="x", padx=5, pady=2)
     
     def submit():
@@ -167,8 +201,14 @@ def find_dijkstra():
         highlight_path(result)
         clear_input_frame()
     
-    tk.Button(input_frame, text="Submit", command=submit, **submit_button_style).pack(side="left", padx=5, pady=2)
-    tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style).pack(side="left", padx=5, pady=2)
+    submit_btn = tk.Button(input_frame, text="Submit", command=submit, **submit_button_style)
+    submit_btn.pack(side="left", padx=5, pady=5)
+    cancel_btn = tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style)
+    cancel_btn.pack(side="left", padx=5, pady=5)
+    
+    for btn in [submit_btn, cancel_btn]:
+        btn.bind("<Enter>", lambda e, b=btn: b.config(bg=BUTTON_HOVER))
+        btn.bind("<Leave>", lambda e, b=btn: b.config(bg=BUTTON_COLOR))
 
 def delete_selected():
     global selected_node, selected_edge
@@ -204,7 +244,6 @@ def find_edge_at(x, y):
     for (c1, c2), line_id in edge_items.items():
         x1, y1 = node_positions[c1]
         x2, y2 = node_positions[c2]
-        # Distance from point (x, y) to line segment
         length_squared = (x2 - x1)**2 + (y2 - y1)**2
         if length_squared == 0:
             dist = math.sqrt((x - x1)**2 + (y - y1)**2)
@@ -219,29 +258,26 @@ def find_edge_at(x, y):
 
 def on_node_press(event):
     global dragging_node, selected_node, selected_edge
-    # Clear previous selection
     if selected_node:
         oval_id, _ = node_items[selected_node]
-        canvas.itemconfig(oval_id, fill="lightblue")
+        canvas.itemconfig(oval_id, fill=NODE_COLOR)
         selected_node = None
     if selected_edge:
         line_id = edge_items[selected_edge]
-        canvas.itemconfig(line_id, fill="black", width=2)
+        canvas.itemconfig(line_id, fill=EDGE_COLOR, width=2)
         selected_edge = None
-    # Check for node click
     city = find_node_at(event.x, event.y)
     if city:
         dragging_node = city
         selected_node = city
         oval_id, _ = node_items[city]
-        canvas.itemconfig(oval_id, fill="yellow")  # Highlight selected/dragged node
+        canvas.itemconfig(oval_id, fill=NODE_HIGHLIGHT)  # Highlight selected/dragged node
     else:
-        # Check for edge click
         edge = find_edge_at(event.x, event.y)
         if edge:
             selected_edge = edge
             line_id = edge_items[edge]
-            canvas.itemconfig(line_id, fill="red", width=4)  # Highlight selected edge
+            canvas.itemconfig(line_id, fill=EDGE_HIGHLIGHT, width=4)  # Highlight selected edge
         update_status("Status: Ready")
 
 def on_node_drag(event):
@@ -252,7 +288,7 @@ def on_node_drag(event):
         update_canvas()
         if dragging_node in node_items:
             oval_id, _ = node_items[dragging_node]
-            canvas.itemconfig(oval_id, fill="yellow")  # Keep highlighted
+            canvas.itemconfig(oval_id, fill=NODE_HIGHLIGHT)  # Keep highlighted
 
 def on_node_release(event):
     global dragging_node
@@ -260,9 +296,9 @@ def on_node_release(event):
     update_canvas()
     if selected_node in node_items:
         oval_id, _ = node_items[selected_node]
-        canvas.itemconfig(oval_id, fill="yellow")  # Keep selected node highlighted
+        canvas.itemconfig(oval_id, fill=NODE_HIGHLIGHT)  # Keep selected node highlighted
     if selected_edge in edge_items:
-        canvas.itemconfig(edge_items[selected_edge], fill="red", width=4)  # Keep selected edge highlighted
+        canvas.itemconfig(edge_items[selected_edge], fill=EDGE_HIGHLIGHT, width=4)  # Keep selected edge highlighted
 
 def update_canvas():
     canvas.delete("all")
@@ -274,23 +310,24 @@ def update_canvas():
             for neighbor, distance in neighbors:
                 if neighbor in node_positions:
                     x2, y2 = node_positions[neighbor]
-                    line_id = canvas.create_line(x1, y1, x2, y2, fill="black", width=2)
+                    line_id = canvas.create_line(x1, y1, x2, y2, fill=EDGE_COLOR, width=2)
                     edge_items[(city, neighbor)] = line_id
                     mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
-                    canvas.create_text(mid_x, mid_y - 10, text=str(distance), fill="blue", font=("Arial", 10, "bold"))
+                    canvas.create_text(mid_x, mid_y - 10, text=str(distance), fill=DISTANCE_COLOR, font=("Helvetica", 12, "bold"))
     
     # Draw nodes
     node_items.clear()
     for city, (x, y) in node_positions.items():
-        oval_id = canvas.create_oval(x - NODE_RADIUS, y - NODE_RADIUS, x + NODE_RADIUS, y + NODE_RADIUS, fill="lightblue", outline="black")
-        text_id = canvas.create_text(x, y, text=city, font=("Arial", 10, "bold"))
+        oval_id = canvas.create_oval(x - NODE_RADIUS, y - NODE_RADIUS, x + NODE_RADIUS, y + NODE_RADIUS, 
+                                   fill=NODE_COLOR, outline="#FFFFFF", width=2)
+        text_id = canvas.create_text(x, y, text=city, font=("Helvetica", 11, "bold"), fill="#FFFFFF")
         node_items[city] = (oval_id, text_id)
         if city == selected_node:
-            canvas.itemconfig(oval_id, fill="yellow")  # Highlight selected node
+            canvas.itemconfig(oval_id, fill=NODE_HIGHLIGHT)  # Highlight selected node
     
     # Highlight selected edge
     if selected_edge in edge_items:
-        canvas.itemconfig(edge_items[selected_edge], fill="red", width=4)
+        canvas.itemconfig(edge_items[selected_edge], fill=EDGE_HIGHLIGHT, width=4)
 
 def highlight_path(path):
     update_canvas()
@@ -300,46 +337,77 @@ def highlight_path(path):
             if city1 in node_positions and city2 in node_positions:
                 x1, y1 = node_positions[city1]
                 x2, y2 = node_positions[city2]
-                canvas.create_line(x1, y1, x2, y2, fill="red", width=3)
+                canvas.create_line(x1, y1, x2, y2, fill=PATH_COLOR, width=4, arrow=tk.LAST, dash=(4, 2))
+                # Highlight nodes in path
+                if city1 in node_items:
+                    oval_id, _ = node_items[city1]
+                    canvas.itemconfig(oval_id, fill=NODE_HIGHLIGHT)
+                if city2 in node_items:
+                    oval_id, _ = node_items[city2]
+                    canvas.itemconfig(oval_id, fill=NODE_HIGHLIGHT)
+
+def on_button_enter(event, button):
+    button.config(bg=BUTTON_HOVER)
+
+def on_button_leave(event, button):
+    button.config(bg=BUTTON_COLOR)
 
 app = tk.Tk()
 app.title("Route Planner")
 app.geometry("800x600")
+app.configure(bg=BG_COLOR)
 
 # Create main frame with grid layout
-main_frame = tk.Frame(app)
+main_frame = tk.Frame(app, bg=BG_COLOR)
 main_frame.pack(fill="both", expand=True)
 
 # Sidebar for controls
-sidebar = tk.Frame(main_frame, width=200, bg="#f0f0f0")
-sidebar.grid(row=0, column=0, sticky="ns", padx=10, pady=5)
+sidebar = tk.Frame(main_frame, width=220, bg=SIDEBAR_COLOR)
+sidebar.grid(row=0, column=0, sticky="ns", padx=10, pady=10)
 
 # Canvas for graph visualization
-canvas = tk.Canvas(main_frame, bg="#ffffff", relief="solid", bd=2)
-canvas.grid(row=0, column=1, sticky="nsew", padx=10, pady=5)
+canvas = tk.Canvas(main_frame, bg=BG_COLOR, relief="flat", highlightbackground="#1E2A3A", highlightthickness=1)
+canvas.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
 # Bind mouse events for dragging and selection
-canvas.bind("<Button-1>", on_node_press)  # Left-click to select/start drag
-canvas.bind("<B1-Motion>", on_node_drag)  # Drag node
-canvas.bind("<ButtonRelease-1>", on_node_release)  # Release drag
+canvas.bind("<Button-1>", on_node_press)
+canvas.bind("<B1-Motion>", on_node_drag)
+canvas.bind("<ButtonRelease-1>", on_node_release)
 
 # Configure grid weights
 main_frame.grid_columnconfigure(1, weight=1)
 main_frame.grid_rowconfigure(0, weight=1)
 
 # Button and submit button styling
-button_style = {"padx": 10, "pady": 5, "bg": "#4CAF50", "fg": "white", "font": ("Arial", 10, "bold")}
-submit_button_style = {"padx": 5, "pady": 3, "bg": "#2196F3", "fg": "white", "font": ("Arial", 8)}
+button_style = {
+    "padx": 10, "pady": 8, "bg": BUTTON_COLOR, "fg": TEXT_COLOR,
+    "font": ("Helvetica", 11, "bold"), "relief": "flat", "bd": 0,
+    "activebackground": BUTTON_HOVER, "activeforeground": TEXT_COLOR
+}
+submit_button_style = {
+    "padx": 8, "pady": 4, "bg": BUTTON_COLOR, "fg": TEXT_COLOR,
+    "font": ("Helvetica", 10), "relief": "flat", "bd": 0,
+    "activebackground": BUTTON_HOVER, "activeforeground": TEXT_COLOR
+}
 
 # Add buttons to sidebar
-tk.Button(sidebar, text="Add City", command=add_city, **button_style).pack(fill="x", padx=5, pady=5)
-tk.Button(sidebar, text="Add Road", command=add_road, **button_style).pack(fill="x", padx=5, pady=5)
-tk.Button(sidebar, text="Find Path (BFS)", command=find_bfs, **button_style).pack(fill="x", padx=5, pady=5)
-tk.Button(sidebar, text="Find Shortest Path (Dijkstra)", command=find_dijkstra, **button_style).pack(fill="x", padx=5, pady=5)
-tk.Button(sidebar, text="Delete", command=delete_selected, **button_style).pack(fill="x", padx=5, pady=5)
+buttons = [
+    tk.Button(sidebar, text="Add City", command=add_city, **button_style),
+    tk.Button(sidebar, text="Add Road", command=add_road, **button_style),
+    tk.Button(sidebar, text="Find Path (BFS)", command=find_bfs, **button_style),
+    tk.Button(sidebar, text="Find Shortest Path (Dijkstra)", command=find_dijkstra, **button_style),
+    tk.Button(sidebar, text="Delete", command=delete_selected, **button_style)
+]
+
+for btn in buttons:
+    btn.pack(fill="x", padx=10, pady=5)
+    btn.bind("<Enter>", lambda e, b=btn: on_button_enter(e, b))
+    btn.bind("<Leave>", lambda e, b=btn: on_button_leave(e, b))
 
 # Status bar
-status_label = tk.Label(app, text="Status: Ready", relief=tk.SUNKEN, anchor="w", bg="#e0e0e0")
-status_label.pack(fill="x", padx=5, pady=5)
+status_label = tk.Label(app, text="Status: Ready", relief="flat", anchor="w", 
+                       bg=STATUS_BAR_COLOR, fg=TEXT_COLOR, font=("Helvetica", 10), 
+                       bd=1, highlightbackground="#1E2A3A")
+status_label.pack(fill="x", padx=10, pady=5)
 
 app.mainloop()
