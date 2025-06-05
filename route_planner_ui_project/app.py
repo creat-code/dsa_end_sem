@@ -3,17 +3,23 @@ from tkinter import messagebox
 from graph import Graph
 from algorithms import bfs, dijkstra
 import random
+import math
 
 g = Graph()
 
-# Store node positions for visualization
+# Store node positions and canvas items for visualization
 node_positions = {}
+node_items = {}  # Maps city to (oval_id, text_id)
 NODE_RADIUS = 20
 CANVAS_WIDTH = 600
 CANVAS_HEIGHT = 400
 
 # Dynamic input frame
 input_frame = None
+
+# Interaction state
+dragging_node = None
+selected_node = None
 
 def clear_input_frame():
     global input_frame
@@ -116,6 +122,7 @@ def remove_city():
             return
         g.remove_city(city)
         node_positions.pop(city, None)
+        node_items.pop(city, None)
         update_status(f"Removed city: {city}")
         update_canvas()
         clear_input_frame()
@@ -225,8 +232,60 @@ def find_dijkstra():
     tk.Button(input_frame, text="Submit", command=submit, **submit_button_style).pack(side="left", padx=5, pady=2)
     tk.Button(input_frame, text="Cancel", command=clear_input_frame, **submit_button_style).pack(side="left", padx=5, pady=2)
 
+def delete_selected():
+    global selected_node
+    if selected_node:
+        g.remove_city(selected_node)
+        node_positions.pop(selected_node, None)
+        node_items.pop(selected_node, None)
+        update_status(f"Removed city: {selected_node}")
+        selected_node = None
+        update_canvas()
+    else:
+        update_status("Error: No city selected.")
+
 def update_status(text):
     status_label.config(text=text)
+
+def find_node_at(x, y):
+    for city, (nx, ny) in node_positions.items():
+        if math.sqrt((x - nx)**2 + (y - ny)**2) <= NODE_RADIUS:
+            return city
+    return None
+
+def on_node_press(event):
+    global dragging_node, selected_node
+    city = find_node_at(event.x, event.y)
+    if city:
+        dragging_node = city
+        selected_node = city
+        oval_id, _ = node_items[city]
+        canvas.itemconfig(oval_id, fill="yellow")  # Highlight selected/dragged node
+    else:
+        dragging_node = None
+        if selected_node:
+            oval_id, _ = node_items[selected_node]
+            canvas.itemconfig(oval_id, fill="lightblue")  # Deselect
+            selected_node = None
+            update_status("Status: Ready")
+
+def on_node_drag(event):
+    if dragging_node:
+        x = max(NODE_RADIUS, min(CANVAS_WIDTH - NODE_RADIUS, event.x))
+        y = max(NODE_RADIUS, min(CANVAS_HEIGHT - NODE_RADIUS, event.y))
+        node_positions[dragging_node] = (x, y)
+        update_canvas()
+        if dragging_node in node_items:
+            oval_id, _ = node_items[dragging_node]
+            canvas.itemconfig(oval_id, fill="yellow")  # Keep highlighted
+
+def on_node_release(event):
+    global dragging_node
+    dragging_node = None
+    update_canvas()
+    if selected_node in node_items:
+        oval_id, _ = node_items[selected_node]
+        canvas.itemconfig(oval_id, fill="yellow")  # Keep selected node highlighted
 
 def update_canvas():
     canvas.delete("all")
@@ -242,9 +301,13 @@ def update_canvas():
                     canvas.create_text(mid_x, mid_y, text=str(distance), fill="blue")
     
     # Draw nodes
+    node_items.clear()
     for city, (x, y) in node_positions.items():
-        canvas.create_oval(x - NODE_RADIUS, y - NODE_RADIUS, x + NODE_RADIUS, y + NODE_RADIUS, fill="lightblue", outline="black")
-        canvas.create_text(x, y, text=city, font=("Arial", 10, "bold"))
+        oval_id = canvas.create_oval(x - NODE_RADIUS, y - NODE_RADIUS, x + NODE_RADIUS, y + NODE_RADIUS, fill="lightblue", outline="black")
+        text_id = canvas.create_text(x, y, text=city, font=("Arial", 10, "bold"))
+        node_items[city] = (oval_id, text_id)
+        if city == selected_node:
+            canvas.itemconfig(oval_id, fill="yellow")  # Highlight selected node
 
 def highlight_path(path):
     update_canvas()
@@ -272,6 +335,11 @@ sidebar.grid(row=0, column=0, sticky="ns", padx=5, pady=5)
 canvas = tk.Canvas(main_frame, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white", relief="sunken", borderwidth=2)
 canvas.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
 
+# Bind mouse events for dragging and selection
+canvas.bind("<Button-1>", on_node_press)  # Left-click to select/start drag
+canvas.bind("<B1-Motion>", on_node_drag)  # Drag node
+canvas.bind("<ButtonRelease-1>", on_node_release)  # Release drag
+
 # Configure grid weights
 main_frame.grid_columnconfigure(1, weight=1)
 main_frame.grid_rowconfigure(0, weight=1)
@@ -287,6 +355,7 @@ tk.Button(sidebar, text="Remove City", command=remove_city, **button_style).pack
 tk.Button(sidebar, text="Remove Road", command=remove_road, **button_style).pack(fill="x", padx=5, pady=5)
 tk.Button(sidebar, text="Find Path (BFS)", command=find_bfs, **button_style).pack(fill="x", padx=5, pady=5)
 tk.Button(sidebar, text="Find Shortest Path (Dijkstra)", command=find_dijkstra, **button_style).pack(fill="x", padx=5, pady=5)
+tk.Button(sidebar, text="Delete", command=delete_selected, **button_style).pack(fill="x", padx=5, pady=5)
 
 # Status bar
 status_label = tk.Label(app, text="Status: Ready", relief=tk.SUNKEN, anchor="w", bg="#e0e0e0")
